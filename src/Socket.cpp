@@ -1,42 +1,40 @@
 #include "Socket.h"
 
 #include <fcntl.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
 #include "InetAddress.h"
-#include "util.h"
-
 Socket::Socket() : fd(-1) {
     fd = socket(AF_INET, SOCK_STREAM, 0);
-    errif(fd == -1, "socket create error");
 }
+
 Socket::Socket(int _fd) : fd(_fd) {
-    errif(fd == -1, "socket create error");
 }
 
 Socket::~Socket() {
-    if (fd != -1) {
+    if (fd != -1)
         close(fd);
-        fd = -1;
-    }
 }
 
-void Socket::bind(InetAddress *addr) {
-    errif(::bind(fd, (sockaddr *)&addr->addr, addr->addr_len) == -1, "socket bind error");
+void Socket::bind(const InetAddress* addr) {
+    ::bind(fd, (sockaddr*)&addr->addr, addr->addrLen);
 }
 
 void Socket::listen() {
-    errif(::listen(fd, SOMAXCONN) == -1, "socket listen error");
+    ::listen(fd, SOMAXCONN);
 }
+
+int Socket::accept(InetAddress* addr) {
+    int clnt = ::accept(fd, (sockaddr*)&addr->addr, &addr->addrLen);
+    return clnt;
+}
+
 void Socket::setnonblocking() {
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 }
 
-int Socket::accept(InetAddress *addr) {
-    int clnt_sockfd = ::accept(fd, (sockaddr *)&addr->addr, &addr->addr_len);
-    errif(clnt_sockfd == -1, "socket accept error");
-    return clnt_sockfd;
+void Socket::setSockOpt(int optName, const void* opt, socklen_t optLen) {
+    setsockopt(fd, SOL_SOCKET, optName, opt, optLen);
 }
 
 int Socket::getFd() {

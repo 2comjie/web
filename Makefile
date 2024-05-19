@@ -1,5 +1,10 @@
-server:
-	g++ src/util.cpp client.cpp -o client && \
-	g++ src/util.cpp server.cpp src/Epoll.cpp src/InetAddress.cpp src/Socket.cpp src/Channel.cpp src/EventLoop.cpp src/Server.cpp -o server
+src:=src/Channel.cpp src/Epoll.cpp src/EventLoop.cpp src/Acceptor.cpp\
+	src/InetAddress.cpp src/Server.cpp src/Socket.cpp serv.cpp
+.PHONY:all clean
+all:serv clnt
+serv:$(src)
+	g++ $^ -o $@ -I include -g
+clnt:clnt.cpp
+	g++ clnt.cpp -o clnt -g
 clean:
-	rm server && rm client
+	-rm serv clnt
