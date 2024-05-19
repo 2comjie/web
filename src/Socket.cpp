@@ -17,7 +17,7 @@ Socket::~Socket() {
 }
 
 void Socket::bind(const InetAddress* addr) {
-    ::bind(fd, (sockaddr*)&addr->addr, addr->addrLen);
+    ::bind(fd, (sockaddr*)&addr->getAddr(), addr->getAddrLen());
 }
 
 void Socket::listen() {
@@ -25,7 +25,10 @@ void Socket::listen() {
 }
 
 int Socket::accept(InetAddress* addr) {
-    int clnt = ::accept(fd, (sockaddr*)&addr->addr, &addr->addrLen);
+    sockaddr_in clntAddr;
+    socklen_t addrLen;
+    int clnt = ::accept(fd, (sockaddr*)&clntAddr, &addrLen);
+    addr->setInetAddr(clntAddr, addrLen);
     return clnt;
 }
 
@@ -33,10 +36,11 @@ void Socket::setnonblocking() {
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 }
 
-void Socket::setSockOpt(int optName, const void* opt, socklen_t optLen) {
-    setsockopt(fd, SOL_SOCKET, optName, opt, optLen);
+void Socket::setAddrReuse() {
+    int reuse = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 }
 
-int Socket::getFd() {
+int Socket::getFd() const {
     return fd;
 }

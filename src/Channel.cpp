@@ -1,7 +1,9 @@
 #include "Channel.h"
 
+#include <unistd.h>
+
 #include "EventLoop.h"
-Channel::Channel(int _fd, EventLoop* _loop) : fd(_fd), loop(_loop), inEpoll(false), callback(nullptr), events(0), revents(0) {
+Channel::Channel(EventLoop* _loop, int _fd) : loop(_loop), fd(_fd), callback(nullptr), inEpoll(false), events(0), revents(0) {
 }
 
 Channel::~Channel() {
@@ -9,22 +11,6 @@ Channel::~Channel() {
 
 void Channel::handleEvent() {
     callback();
-}
-
-uint32_t Channel::getEvents() {
-    return events;
-}
-
-uint32_t Channel::getRevents() {
-    return revents;
-}
-
-int Channel::getFd() {
-    return fd;
-}
-
-bool Channel::getInEpoll() {
-    return inEpoll;
 }
 
 void Channel::setEvents(uint32_t ev) {
@@ -39,8 +25,24 @@ void Channel::setInEpoll() {
     inEpoll = true;
 }
 
-void Channel::setCallback(std::function<void()> cb) {
-    callback = cb;
+void Channel::setCallback(std::function<void()> _cb) {
+    callback = _cb;
+}
+
+uint32_t Channel::getEvents() const {
+    return events;
+}
+
+uint32_t Channel::getRevents() const {
+    return revents;
+}
+
+bool Channel::getInEpoll() const {
+    return inEpoll;
+}
+
+int Channel::getFd() const {
+    return fd;
 }
 
 void Channel::updateChannel() {

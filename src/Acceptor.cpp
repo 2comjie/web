@@ -1,31 +1,36 @@
 #include "Acceptor.h"
 
+#include <stdio.h>
+
 #include "Channel.h"
-#include "EventLoop.h"
 #include "InetAddress.h"
 #include "Socket.h"
 Acceptor::Acceptor(EventLoop* _loop) : loop(_loop) {
     sock = new Socket();
-    addr = new InetAddress("127.0.0.1", 8888);
+    InetAddress* addr = new InetAddress("127.0.0.1", 8888);
+    sock->setAddrReuse();
     sock->bind(addr);
     sock->listen();
-    int reuse = 1;
-    sock->setSockOpt(SO_REUSEADDR, &reuse, sizeof(reuse));
-    acceptChannel = new Channel(sock->getFd(), loop);
-    std::function<void()> cb = std::bind(&Acceptor::acceptConnection, this);
-    acceptChannel->setCallback(cb);
-    acceptChannel->setEvents(EPOLLIN);
-    acceptChannel->updateChannel();
+
+    channel = new Channel(loop, sock->getFd());
+    channel->setCallback(std::bind(&Acceptor::acceptConnection, this));
+    channel->setEvents(EPOLLIN);
+    channel->updateChannel();
+    delete addr;
 }
 
 Acceptor::~Acceptor() {
     delete sock;
-    delete addr;
-    delete acceptChannel;
+    delete channel;
 }
 
 void Acceptor::acceptConnection() {
-    newConnectionCallback(sock);
+    InetAddress* clntAddr = new InetAddress();
+    Socket* clntSock = new Socket(sock->accept(clntAddr));
+    clntSock->setnonblocking();
+    printf("new conn \n");
+    newConnectionCallback(clntSock);
+    delete clntAddr;
 }
 
 void Acceptor::setNewConnectionCallback(std::function<void(Socket*)> _cb) {

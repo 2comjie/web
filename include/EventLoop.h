@@ -1,16 +1,16 @@
 #pragma once
 
-class Epoll;
 class Channel;
+class Epoll;
 class EventLoop {
    private:
-    Epoll* ep;
+    Epoll *ep;
     bool quit;
 
    public:
     EventLoop();
     ~EventLoop();
 
-    void loop();
-    void updateChannel(Channel*);
+    void loop();                    // 事件循环
+    void updateChannel(Channel *);  // 往epoll中添加事件
 };

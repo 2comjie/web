@@ -20,8 +20,8 @@ int main(void) {
     while (true) {
         printf("Input: ");
         bzero(buf, sizeof(buf));
-        fgets(buf, sizeof(buf), stdin);
-        if (!strcmp(buf, "q\n") || !strcmp(buf, "Q\n"))
+        scanf("%s", buf);
+        if (!strcmp(buf, "q") || !strcmp(buf, "Q"))
             break;
         write(servSock, buf, sizeof(buf));
         bzero(buf, sizeof(buf));
@@ -30,7 +30,7 @@ int main(void) {
             printf("disconnect\n");
             break;
         } else {
-            printf("Serv: %s", buf);
+            printf("Serv: %s\n", buf);
         }
     }
     close(servSock);

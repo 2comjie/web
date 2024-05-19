@@ -1,5 +1,9 @@
 #include "EventLoop.h"
 
+#include <string.h>
+
+#include <vector>
+
 #include "Channel.h"
 #include "Epoll.h"
 EventLoop::EventLoop() : ep(nullptr), quit(false) {
@@ -7,19 +11,17 @@ EventLoop::EventLoop() : ep(nullptr), quit(false) {
 }
 
 EventLoop::~EventLoop() {
-    if (ep != nullptr)
-        delete ep;
+    delete ep;
 }
 
-#include <stdio.h>
+void EventLoop::updateChannel(Channel* ch) {
+    ep->updateChannel(ch);
+}
+
 void EventLoop::loop() {
     while (!quit) {
         std::vector<Channel*> chs = ep->poll(-1);
         for (auto ch : chs)
             ch->handleEvent();
     }
-}
-
-void EventLoop::updateChannel(Channel* ch) {
-    ep->updateChannle(ch);
 }

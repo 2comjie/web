@@ -1,7 +1,8 @@
 #pragma once
+
 #include <sys/socket.h>
 
-struct InetAddress;
+class InetAddress;
 class Socket {
    private:
     int fd;
@@ -11,12 +12,11 @@ class Socket {
     Socket(int);
     ~Socket();
 
-    void bind(const InetAddress*);  // 绑定文件描述符
-    void listen();                  // 监听文件描述符
-    int accept(InetAddress*);       // 接收客户端连接请求
+    void bind(const InetAddress*);  // 绑定
+    void listen();                  // 监听
+    int accept(InetAddress*);       // 接收
+    void setnonblocking();          // 设置非阻塞
+    void setAddrReuse();            // 设置地址复用
 
-    void setnonblocking();                         // 设置非阻塞
-    void setSockOpt(int, const void*, socklen_t);  // 设置socket的相关选项
-
-    int getFd();  // 返回文件描述符
+    int getFd() const;
 };
