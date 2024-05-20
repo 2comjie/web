@@ -1,4 +1,4 @@
-src:=src/Channel.cpp src/Epoll.cpp src/EventLoop.cpp src/Acceptor.cpp\
+src:=src/Channel.cpp src/Epoll.cpp src/EventLoop.cpp src/Acceptor.cpp src/Buffer.cpp\
 	src/InetAddress.cpp src/Server.cpp src/Socket.cpp src/Connection.cpp serv.cpp
 .PHONY:all clean
 all:serv clnt

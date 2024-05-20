@@ -4,7 +4,7 @@ class Channel;
 class Epoll;
 class EventLoop {
    private:
-    Epoll *ep;
+    Epoll *ep;  // epoll对象
     bool quit;
 
    public:
