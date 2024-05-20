@@ -17,7 +17,8 @@ Socket::~Socket() {
 }
 
 void Socket::bind(const InetAddress* addr) {
-    ::bind(fd, (sockaddr*)&addr->getAddr(), addr->getAddrLen());
+    sockaddr_in _addr = addr->getAddr();
+    ::bind(fd, (sockaddr*)&_addr, addr->getAddrLen());
 }
 
 void Socket::listen() {
