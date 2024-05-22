@@ -20,10 +20,10 @@ int main(void) {
     while (true) {
         printf("Input: ");
         bzero(buf, sizeof(buf));
-        scanf("%s", buf);
+        int a = scanf("%s", buf);
         if (!strcmp(buf, "q") || !strcmp(buf, "Q"))
             break;
-        write(servSock, buf, sizeof(buf));
+        ssize_t write_bytes = write(servSock, buf, sizeof(buf));
         bzero(buf, sizeof(buf));
         ssize_t len = read(servSock, buf, sizeof(buf));
         if (len < 0) {

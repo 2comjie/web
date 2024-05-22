@@ -15,8 +15,10 @@ class Socket {
     void bind(const InetAddress*);  // 绑定
     void listen();                  // 监听
     int accept(InetAddress*);       // 接收
-    void setnonblocking();          // 设置非阻塞
-    void setAddrReuse();            // 设置地址复用
+    void connect(InetAddress*);     // 连接
+
+    void setnonblocking();  // 设置非阻塞
+    void setAddrReuse();    // 设置地址复用
 
     int getFd() const;
 };

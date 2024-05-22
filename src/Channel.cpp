@@ -1,50 +1,76 @@
 #include "Channel.h"
 
+#include <sys/epoll.h>
 #include <unistd.h>
 
 #include "EventLoop.h"
-Channel::Channel(EventLoop* _loop, int _fd) : loop(_loop), fd(_fd), callback(nullptr), inEpoll(false), events(0), revents(0) {
-}
+#include "Socket.h"
+
+Channel::Channel(EventLoop *_loop, int _fd)
+    : loop(_loop), fd(_fd), events(0), ready(0), inEpoll(false), useThreadPool(true) {}
 
 Channel::~Channel() {
+    if (fd != -1) {
+        close(fd);
+        fd = -1;
+    }
 }
 
 void Channel::handleEvent() {
-    callback();
+    if (ready & (EPOLLIN | EPOLLPRI)) {
+        if (useThreadPool)
+            loop->addThread(readCallback);
+        else
+            readCallback();
+    }
+    if (ready & (EPOLLOUT)) {
+        if (useThreadPool)
+            loop->addThread(writeCallback);
+        else
+            writeCallback();
+    }
 }
 
-void Channel::setEvents(uint32_t ev) {
-    events = ev;
+void Channel::enableRead() {
+    events |= EPOLLIN | EPOLLPRI;
+    loop->updateChannel(this);
 }
 
-void Channel::setRevents(uint32_t ev) {
-    revents = ev;
+void Channel::useET() {
+    events |= EPOLLET;
+    loop->updateChannel(this);
 }
-
-void Channel::setInEpoll() {
-    inEpoll = true;
-}
-
-void Channel::setCallback(std::function<void()> _cb) {
-    callback = _cb;
-}
-
-uint32_t Channel::getEvents() const {
-    return events;
-}
-
-uint32_t Channel::getRevents() const {
-    return revents;
-}
-
-bool Channel::getInEpoll() const {
-    return inEpoll;
-}
-
-int Channel::getFd() const {
+int Channel::getFd() {
     return fd;
 }
 
-void Channel::updateChannel() {
-    loop->updateChannel(this);
+uint32_t Channel::getEvents() {
+    return events;
+}
+uint32_t Channel::getReady() {
+    return ready;
+}
+
+bool Channel::getInEpoll() {
+    return inEpoll;
+}
+
+void Channel::setInEpoll(bool _in) {
+    inEpoll = _in;
+}
+
+void Channel::setReady(uint32_t _ev) {
+    ready = _ev;
+}
+
+void Channel::setReadCallback(std::function<void()> _cb) {
+    readCallback = _cb;
+}
+
+void Channel::setWriteCallback(std::function<void()> _cb) {
+    writeCallback = _cb;
+}
+
+void Channel::setUseThreadPool(bool use) {
+    useThreadPool = use;
 }

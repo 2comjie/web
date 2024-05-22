@@ -16,6 +16,6 @@ class Server {
     Server(EventLoop*);
     ~Server();
 
-    void newConnection(Socket*);     // 处理新建连接
-    void deleteConnection(Socket*);  // 处理断开连接
+    void newConnection(Socket*);  // 处理新建连接
+    void deleteConnection(int);   // 处理断开连接
 };

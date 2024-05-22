@@ -13,9 +13,11 @@
 #define READ_BUFFER 1024
 Connection::Connection(EventLoop* _loop, Socket* _sock) : loop(_loop), sock(_sock), channel(nullptr), inBuffer(new std::string()), readBuffer(nullptr) {
     channel = new Channel(loop, sock->getFd());
-    channel->setEvents(EPOLLIN | EPOLLET);
-    channel->setCallback(std::bind(&Connection::echo, this, sock->getFd()));
-    channel->updateChannel();
+    channel->enableRead();
+    channel->useET();
+    channel->setReadCallback(std::bind(&Connection::echo, this, sock->getFd()));
+    // channel->setWriteCallback(std::bind(&Connection::send, this, sock->getFd()));
+    channel->setUseThreadPool(true);
     readBuffer = new Buffer();
 }
 
@@ -23,7 +25,6 @@ Connection::~Connection() {
     delete channel;
     delete sock;
     delete readBuffer;
-    delete inBuffer;
 }
 
 void Connection::echo(int sockfd) {
@@ -37,19 +38,32 @@ void Connection::echo(int sockfd) {
             printf("continue reading");
             continue;
         } else if (bytes_read == -1 && ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {  // 非阻塞IO，这个条件表示数据全部读取完毕
-            printf("finish reading once, errno: %d\n", errno);
             printf("message from client fd %d: %s\n", sockfd, readBuffer->c_str());
-            write(sockfd, readBuffer->c_str(), readBuffer->size());
+            send(sockfd);
             readBuffer->clear();
             break;
         } else if (bytes_read == 0) {  // EOF，客户端断开连接
             printf("EOF, client fd %d disconnected\n", sockfd);
-            deleteConnectionCallback(sock);
+            deleteConnectionCallback(sockfd);
             break;
         }
     }
 }
 
-void Connection::setDeleteConnectionCallback(std::function<void(Socket*)> _cb) {
+void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb) {
     deleteConnectionCallback = _cb;
+}
+
+void Connection::send(int sockfd) {
+    char buf[readBuffer->size()];
+    strcpy(buf, readBuffer->c_str());
+    int data_size = readBuffer->size();
+    int data_left = data_size;
+    while (data_left > 0) {
+        ssize_t bytes_write = write(sockfd, buf + data_size - data_left, data_left);
+        if (bytes_write == -1 && errno == EAGAIN) {
+            break;
+        }
+        data_left -= bytes_write;
+    }
 }

@@ -22,7 +22,7 @@ std::vector<Channel*> Epoll::poll(int timeout) {
     int nfds = epoll_wait(epfd, events, MAX_EVENTS, timeout);
     for (int i = 0; i < nfds; ++i) {
         Channel* ch = (Channel*)events[i].data.ptr;
-        ch->setRevents(events[i].events);
+        ch->setReady(events[i].events);
         chs.push_back(ch);
     }
     return chs;
@@ -40,4 +40,10 @@ void Epoll::updateChannel(Channel* channel) {
     } else {
         epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &ev);
     }
+}
+
+void Epoll::deleteChannel(Channel* channel) {
+    int fd = channel->getFd();
+    epoll_ctl(epfd, EPOLL_CTL_DEL, fd, NULL);
+    channel->setInEpoll(false);
 }

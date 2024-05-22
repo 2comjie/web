@@ -6,8 +6,10 @@
 
 #include "Channel.h"
 #include "Epoll.h"
-EventLoop::EventLoop() : ep(nullptr), quit(false) {
+#include "ThreadPool.h"
+EventLoop::EventLoop() : ep(nullptr), quit(false), threadPool(nullptr) {
     ep = new Epoll();
+    threadPool = new ThreadPool();
 }
 
 EventLoop::~EventLoop() {
@@ -24,4 +26,8 @@ void EventLoop::loop() {
         for (auto ch : chs)
             ch->handleEvent();
     }
+}
+
+void EventLoop::addThread(std::function<void()> func) {
+    threadPool->add(func);
 }

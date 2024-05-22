@@ -9,9 +9,9 @@ class Channel;
 class Connection {
    private:
     EventLoop* loop;
-    Socket* sock;                                           // 对应TCP连接的套接字
-    Channel* channel;                                       // 对应的channel
-    std::function<void(Socket*)> deleteConnectionCallback;  // 断开连接时的回调函数
+    Socket* sock;                                       // 对应TCP连接的套接字
+    Channel* channel;                                   // 对应的channel
+    std::function<void(int)> deleteConnectionCallback;  // 断开连接时的回调函数
     std::string* inBuffer;
     Buffer* readBuffer;
 
@@ -20,5 +20,6 @@ class Connection {
     ~Connection();
 
     void echo(int);  // 处理读取事件
-    void setDeleteConnectionCallback(std::function<void(Socket*)>);
+    void send(int);
+    void setDeleteConnectionCallback(std::function<void(int)>);
 };

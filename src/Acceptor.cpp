@@ -13,9 +13,10 @@ Acceptor::Acceptor(EventLoop* _loop) : loop(_loop) {
     sock->listen();
 
     channel = new Channel(loop, sock->getFd());
-    channel->setCallback(std::bind(&Acceptor::acceptConnection, this));
-    channel->setEvents(EPOLLIN);
-    channel->updateChannel();
+    std::function<void()> cb = std::bind(&Acceptor::acceptConnection, this);
+    channel->setReadCallback(cb);
+    channel->enableRead();
+    channel->setUseThreadPool(false);
     delete addr;
 }
 
@@ -28,7 +29,7 @@ void Acceptor::acceptConnection() {
     InetAddress* clntAddr = new InetAddress();
     Socket* clntSock = new Socket(sock->accept(clntAddr));
     clntSock->setnonblocking();
-    printf("new conn \n");
+    printf("new client fd %d! IP: %s Port: %d\n", clntSock->getFd(), inet_ntoa(clntAddr->getAddr().sin_addr), ntohs(clntAddr->getAddr().sin_port));
     newConnectionCallback(clntSock);
     delete clntAddr;
 }

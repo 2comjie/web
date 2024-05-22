@@ -3,30 +3,34 @@
 
 #include <functional>
 class EventLoop;
+class Socket;
 class Channel {
    private:
-    EventLoop* loop;                 // 事件循环
-    int fd;                          // 对应的套接字描述符
-    std::function<void()> callback;  // 对应套接字触发事件时候的回调函数
+    EventLoop *loop;
+    int fd;
+    uint32_t events;
+    uint32_t ready;
     bool inEpoll;
-    uint32_t events;   // 关注的事件
-    uint32_t revents;  // 发生的事件
+    bool useThreadPool;
+    std::function<void()> readCallback;   // 读取事件的回调函数
+    std::function<void()> writeCallback;  // 写事件的回调函数
 
    public:
-    Channel(EventLoop*, int);
+    Channel(EventLoop *_loop, int _fd);
     ~Channel();
 
-    void handleEvent();  // 调用callback，处理触发事件
+    void handleEvent();
+    void enableRead();
 
-    void setEvents(uint32_t);
-    void setRevents(uint32_t);
-    void setInEpoll();
-    void setCallback(std::function<void()>);
+    int getFd();
+    uint32_t getEvents();
+    uint32_t getReady();
+    bool getInEpoll();
+    void setInEpoll(bool _in = true);
+    void useET();
 
-    uint32_t getEvents() const;
-    uint32_t getRevents() const;
-    bool getInEpoll() const;
-    int getFd() const;
-
-    void updateChannel();
+    void setReady(uint32_t);
+    void setReadCallback(std::function<void()>);
+    void setWriteCallback(std::function<void()>);
+    void setUseThreadPool(bool use = true);
 };

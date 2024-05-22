@@ -33,6 +33,11 @@ int Socket::accept(InetAddress* addr) {
     return clnt;
 }
 
+void Socket::connect(InetAddress* _addr) {
+    sockaddr_in addr = _addr->getAddr();
+    ::connect(fd, (sockaddr*)&addr, sizeof(addr));
+}
+
 void Socket::setnonblocking() {
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 }
